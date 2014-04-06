@@ -6,7 +6,7 @@ module Skylight
 
         include Util::Logging
 
-        attr_reader   :endpoint, :spans, :notifications
+        attr_reader :endpoint, :spans, :notifications, :thread
 
         def endpoint=(value)
           @endpoint = value.freeze
@@ -26,6 +26,12 @@ module Skylight
           @submitted     = false
           @start         = start
 
+          # For now, traces are pinned to a single thread. This is enforced yet
+          # and ideally would not be true, but is needed at the moment for CPU
+          # profiling in order to sample the stack. All these concepts need to
+          # be decoupled.
+          @thread = Thread.current
+
           @notifications = []
 
           if Hash === title
@@ -42,6 +48,14 @@ module Skylight
           @native_builder.native_span_set_description(@root, desc) if desc
 
           @gc   = config.gc.track unless ENV.key?("SKYLIGHT_DISABLE_GC_TRACKING")
+        end
+
+        def sample_stack(th)
+          @native_builder.native_sample_stack(th)
+        end
+
+        def set_stack_frame_filter(path)
+          @native_builder.native_set_stack_frame_filter(path.to_s)
         end
 
         def serialize
@@ -106,8 +120,7 @@ module Skylight
         end
 
         def release
-          return unless @instrumenter.current_trace == self
-          @instrumenter.current_trace = nil
+          @instrumenter.release(self)
         end
 
         def traced

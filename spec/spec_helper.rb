@@ -131,7 +131,21 @@ RSpec.configure do |config|
 
   config.before :each do
     Skylight::Util::Clock.default = SpecHelper::TestClock.new
+
+    # instrumenter = Skylight::Instrumenter.instance
+    # # Ensure no traces are active
+    # if instrumenter && instrumenter.current_trace
+    #   raise "Skylight tracing leaked across specs"
+    # end
   end
+
+  # config.after :each do
+  #   instrumenter = Skylight::Instrumenter.instance
+  #   # Ensure no traces are active
+  #   if instrumenter && instrumenter.current_trace
+  #     raise "Skylight tracing leaked across specs"
+  #   end
+  # end
 
   config.before :each, http: true do
     start_server

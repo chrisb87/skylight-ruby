@@ -2,6 +2,7 @@ require 'thread'
 require 'set'
 require 'base64'
 require 'strscan'
+require 'skylight/util/logging'
 
 module Skylight
   # @api private
@@ -64,6 +65,12 @@ module Skylight
 
       @trace_info = @config[:trace_info] || TraceInfo.new
       @descriptions = Hash.new { |h,k| h[k] = {} }
+      @active_traces = {}
+
+      # Used for CPU profiling
+      @app_root = config[:root]
+      @run_profiler = false
+      @timing_thread = nil
     end
 
     def current_trace
@@ -103,14 +110,18 @@ module Skylight
 
       @subscriber.register!
 
+      start_cpu_profiler
+
       self
 
     rescue Exception => e
       log_error "failed to start instrumenter; msg=%s", e.message
+      t { e.backtrace.join("\n") }
       nil
     end
 
     def shutdown
+      stop_cpu_profiler
       @subscriber.unregister!
       @worker.shutdown
     end
@@ -132,6 +143,8 @@ module Skylight
       end
 
       @trace_info.current = trace
+      register_trace(trace)
+
       return trace unless block_given?
 
       begin
@@ -234,5 +247,80 @@ module Skylight
       end
     end
 
+    def release(trace)
+      LOCK.synchronize do
+        if @active_traces[trace.thread] == trace
+          @active_traces.delete(trace.thread)
+        end
+      end
+
+      return unless current_trace == trace
+      selfcurrent_trace = nil
+    end
+
+  # private
+
+    def cpu_profiling?
+      Skylight.cpu_profiling_supported?
+    end
+
+    def start_cpu_profiler
+      if @config[:'features.cpu_profiling']
+        unless cpu_profiling?
+          log_warn "native Skylight agent compiled without CPU profiling."
+          return
+        end
+
+        log_debug "starting CPU profiler"
+        @run_profiler = true
+        native_start_cpu_profiler(Thread.current)
+      end
+    end
+
+    def stop_cpu_profiler
+      return unless @run_profiler
+      return unless cpu_profiling?
+
+      native_stop_cpu_profiler
+
+      @run_profiler = false
+
+      if @timing_thread
+        @timing_thread.join(5)
+        @timing_thread = nil
+      end
+    end
+
+    def register_trace(trace)
+      if @app_root
+        trace.set_stack_frame_filter(@app_root)
+      end
+
+      LOCK.synchronize do
+        @active_traces[trace.thread] = trace
+      end
+    end
+
+    def sample_stacks
+      # TODO: synchronization is not permitted in a signal handler, so obtain a
+      # lock by running in C.
+      @active_traces.each do |th, trace|
+        if th.alive?
+          trace.sample_stack(th)
+        else
+          @active_traces.delete(th)
+        end
+      end
+    end
+
+    def start_timing_thread
+      # Running this simple no-op thread helps get more reliable timing when
+      # taking CPU profiling samples
+      Thread.new do
+        while @run_profiler
+          sleep 0.002
+        end
+      end
+    end
   end
 end

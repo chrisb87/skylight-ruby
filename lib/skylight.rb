@@ -80,6 +80,9 @@ module Skylight
 
     # Require VM specific things
     require 'skylight/vm/gc'
+
+    # Require core bits
+    require 'skylight/instrumenter'
   end
 
   autoload :Api,          'skylight/api'
@@ -88,7 +91,6 @@ module Skylight
   autoload :Helpers,      'skylight/helpers'
   autoload :Formatters,   'skylight/formatters'
   autoload :GC,           'skylight/gc'
-  autoload :Instrumenter, 'skylight/instrumenter'
   autoload :Messages,     'skylight/messages'
   autoload :Metrics,      'skylight/metrics'
   autoload :Middleware,   'skylight/middleware'
