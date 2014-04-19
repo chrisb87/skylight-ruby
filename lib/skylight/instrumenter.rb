@@ -110,7 +110,7 @@ module Skylight
 
       @subscriber.register!
 
-      start_cpu_profiler
+      enable_cpu_profiler
 
       self
 
@@ -265,18 +265,28 @@ module Skylight
       Skylight.cpu_profiling_supported?
     end
 
-    def start_cpu_profiler
+    def enable_cpu_profiler
       if @config[:'features.cpu_profiling']
         unless cpu_profiling?
           log_warn "native Skylight agent compiled without CPU profiling."
           return
         end
 
-        log_debug "starting CPU profiler"
-        @run_profiler = true
-        start_timing_thread
-        native_start_cpu_profiler(Thread.current)
+        log_debug "enabling CPU profiler"
+        @enable_cpu_profiler = true
+      else
+        log_debug "skipping CPU profiler"
       end
+    end
+
+    def maybe_start_cpu_profiler
+      return if @run_profiler
+      return unless @enable_cpu_profiler
+
+      log_debug "starting CPU profiler"
+      @run_profiler = true
+      start_timing_thread
+      native_start_cpu_profiler(Thread.current)
     end
 
     def stop_cpu_profiler
@@ -294,6 +304,8 @@ module Skylight
     end
 
     def register_trace(trace)
+      maybe_start_cpu_profiler
+
       if @app_root
         trace.set_stack_frame_filter(@app_root)
       end
