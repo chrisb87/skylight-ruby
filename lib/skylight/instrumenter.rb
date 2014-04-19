@@ -68,7 +68,13 @@ module Skylight
       @active_traces = {}
 
       # Used for CPU profiling
-      @app_root = config[:root]
+      # Super hardcoded to rails ATM :(
+      if root = config[:root]
+        @app_root = []
+        @app_root << File.join(root, "/app")
+        @app_root << File.join(root, "/lib")
+      end
+
       @run_profiler = false
       @timing_thread = nil
     end

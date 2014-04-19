@@ -354,7 +354,7 @@ trace_serialize(VALUE self) {
 }
 
 static VALUE
-trace_set_stack_frame_filter(VALUE self, VALUE filter) {
+trace_add_stack_frame_filter(VALUE self, VALUE filter) {
   // Safety first, always
   if (filter == Qnil)
     return Qnil;
@@ -362,7 +362,7 @@ trace_set_stack_frame_filter(VALUE self, VALUE filter) {
   CHECK_TYPE(filter, T_STRING);
 
   My_Struct(trace, sk_trace_t*, rb_trace_is_freed_err);
-  sk_trace_set_stack_frame_filter(trace, STR2BUF(filter));
+  sk_trace_add_stack_frame_filter(trace, STR2BUF(filter));
 
   return Qnil;
 }
@@ -523,7 +523,7 @@ void Init_skylight_native() {
   rb_define_method(rb_cTrace, "native_stop_span", trace_stop_span, 2);
   rb_define_method(rb_cTrace, "native_span_set_title", trace_span_set_title, 2);
   rb_define_method(rb_cTrace, "native_span_set_description", trace_span_set_description, 2);
-  rb_define_method(rb_cTrace, "native_set_stack_frame_filter", trace_set_stack_frame_filter, 1);
+  rb_define_method(rb_cTrace, "native_add_stack_frame_filter", trace_add_stack_frame_filter, 1);
   rb_define_method(rb_cTrace, "native_sample_stack", trace_sample_stack, 1);
 
   rb_cBatch = rb_define_class_under(rb_mSkylight, "Batch", rb_cObject);

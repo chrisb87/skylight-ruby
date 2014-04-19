@@ -47,15 +47,17 @@ module Skylight
           @native_builder.native_span_set_title(@root, title) if title
           @native_builder.native_span_set_description(@root, desc) if desc
 
-          @gc   = config.gc.track unless ENV.key?("SKYLIGHT_DISABLE_GC_TRACKING")
+          @gc = config.gc.track unless ENV.key?("SKYLIGHT_DISABLE_GC_TRACKING")
         end
 
         def sample_stack(th)
           @native_builder.native_sample_stack(th)
         end
 
-        def set_stack_frame_filter(path)
-          @native_builder.native_set_stack_frame_filter(path.to_s)
+        def set_stack_frame_filter(paths)
+          paths.each do |path|
+            @native_builder.native_add_stack_frame_filter(path.to_s)
+          end
         end
 
         def serialize

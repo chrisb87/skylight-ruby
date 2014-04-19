@@ -158,7 +158,7 @@ end
 # Treat all warnings as errors
 $CFLAGS << " -Werror"
 
-if RbConfig::CONFIG["arch"] =~ /darwin(\d+)?/
+if is_darwin?
   # Link against pthread
   $LDFLAGS << " -lpthread"
 else

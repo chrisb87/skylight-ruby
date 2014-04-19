@@ -133,7 +133,7 @@ int sk_trace_serialize(sk_trace_t*, sk_serializer_t*, sk_buf_t);
  *
  */
 
-void sk_trace_set_stack_frame_filter(sk_trace_t*, sk_buf_t);
+void sk_trace_add_stack_frame_filter(sk_trace_t*, sk_buf_t);
 
 sk_frame_t sk_trace_register_stack_frame(sk_trace_t*, uintptr_t, sk_bool);
 
