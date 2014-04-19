@@ -121,6 +121,7 @@ module Skylight
     end
 
     def shutdown
+      log_debug "shutting down instrumenter"
       stop_cpu_profiler
       @subscriber.unregister!
       @worker.shutdown
@@ -273,6 +274,7 @@ module Skylight
 
         log_debug "starting CPU profiler"
         @run_profiler = true
+        start_timing_thread
         native_start_cpu_profiler(Thread.current)
       end
     end
