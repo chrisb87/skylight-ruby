@@ -307,7 +307,10 @@ module Skylight
       maybe_start_cpu_profiler
 
       if @app_root
+        t { fmt "setting stack frame filter; val=%s", @app_root }
         trace.set_stack_frame_filter(@app_root)
+      else
+        t { fmt "no stack frame filter" }
       end
 
       LOCK.synchronize do
