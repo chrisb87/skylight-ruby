@@ -262,7 +262,7 @@ module Skylight
       end
 
       return unless current_trace == trace
-      selfcurrent_trace = nil
+      self.current_trace = nil
     end
 
   # private
