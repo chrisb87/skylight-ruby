@@ -327,7 +327,7 @@ module Skylight
     def sample_stacks
       # TODO: synchronization is not permitted in a signal handler, so obtain a
       # lock by running in C.
-      @active_traces.each do |th, trace|
+      @active_traces.dup.each do |th, trace|
         if th.alive?
           trace.sample_stack(th)
         else
