@@ -25,13 +25,13 @@ module Skylight
         if config = load_skylight_config(app)
           if Instrumenter.start!(config)
             app.middleware.insert 0, Middleware, config: config
-            puts "[SKYLIGHT] [#{Skylight::VERSION}] Skylight agent enabled"
+            Rails.logger.info "[SKYLIGHT] [#{Skylight::VERSION}] Skylight agent enabled"
           end
         end
       elsif Rails.env.development?
-        puts "[SKYLIGHT] [#{Skylight::VERSION}] Running Skylight in development mode. No data will be reported until you deploy your app."
+        Rails.logger.info "[SKYLIGHT] [#{Skylight::VERSION}] Running Skylight in development mode. No data will be reported until you deploy your app."
       elsif !Rails.env.test?
-        puts "[SKYLIGHT] [#{Skylight::VERSION}] You are running in the #{Rails.env} environment but haven't added it to config.skylight.environments, so no data will be sent to skylight.io."
+        Rails.logger.info "[SKYLIGHT] [#{Skylight::VERSION}] You are running in the #{Rails.env} environment but haven't added it to config.skylight.environments, so no data will be sent to skylight.io."
       end
     end
 
